@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.2/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.0.2/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+  </head>
+
+<body>
+<header>
+	<h1>STEEL : Service de Tweet Efficace Et Localisé</h1>
+	
+</header>
+<div id="app">
+<div id='map-container'>
+	<div id="mapid"></div>
+</div>
+<div id ='settings_and_img'>
+<div id='settings'>
+<ul id='cam'>
+	<li>
+		<label>
+			<input type="checkbox" id="cbox1">
+			Caméra libre
+		</label>
+	</li>
+</ul>
+<form>
+  <h2>Appareil photo:</h2>
+  <ul>
+  <li><input type="radio" name="photo" value="7" checked> Smartphone</li>
+  <li><input type="radio" name="photo" value="10"> Reflex</li>
+  <li><input type="radio" name="photo" value="13"> Téléobjectif</li>
+</ul>
+</form>
+<button type="button" id='clic'><p>Prendre une photo</p></button>
+</div>
+
+  <div id='tweet'>
+    <div id='tweet_img'>
+    </div>
+    <h2 id='tweet_titre'>Hello World !</h2>
+  </div>
+</div>
+</div>
+</body>
+
+<script type="text/javascript">
+
+var mymap           = L.map('mapid').setView([0.0, 0.0], 13);
+var latitude        = 0;
+var longitude       = 0;
+var last_latitude   = 0;
+var last_longitude  = 0;
+var myDelay         = 1000;
+var thisDelay       = 1000;
+var start           = Date.now();
+var couche_marqueur = L.featureGroup();
+var couche_lignes   = L.featureGroup();
+var api_key         = 'AIzaSyDzDkv9g2y3YiudOwazvdkVEfC0LhYvS5Q';
+var username        = 'arnaudgregoire';
+
+L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png',
+    {
+    attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+    }
+    ).addTo(mymap);
+
+
+
+function getValue() {
+  // on fait une requête ajax pour récupérer les coordonnées latitude longitude de l'iss
+  $.ajax({
+      type: 'GET',
+      dataType: 'jsonp',
+      url: 'http://api.open-notify.org/iss-now.json',
+      crossDomain: true,
+      complete: function (data) {
+             if (data.readyState === 4 && data.status === 200) {
+                latitude  = data.responseJSON.iss_position.latitude;
+                longitude = data.responseJSON.iss_position.longitude;
+              }
+      }})
+}
+
+function get_location(){
+  //on utilise Find nearby populated place / reverse geocoding pour trouver un lieu à proximité
+  $.ajax({
+      type: 'GET',
+      dataType: 'jsonp',
+      url: create_url_nom(),
+      crossDomain: true,
+      complete: function (data) {
+             if (data.readyState === 4 && data.status === 200) {
+                  if(data.responseJSON.geonames.length>0){
+                      var nom = data.responseJSON.geonames[0].name;
+                      var pays = data.responseJSON.geonames[0].countryName;
+                      set_location(pays,nom);
+                      }
+                  else{
+                  set_erreur();
+                }
+              }
+      }})
+}
+
+function set_location(pays,nom) {
+  // on initialise le h1 en fonction de la location trouvé
+    document.getElementById("tweet_titre").innerHTML = 'Hello '+ nom +' ' +pays +'!';
+}
+
+function set_erreur() {
+  // on initialise le h1 en disant que aucune location n'a été trouvé à proximité :/
+    document.getElementById("tweet_titre").innerHTML = "Aucune location n'a été trouvé à proximité :/"
+}
+
+function create_url_nom(){
+  //on créé l'url avec la bonne latitude/longitude
+  var url= 'http://api.geonames.org/findNearbyPlaceNameJSON?lat='
+  url   += latitude.toString()
+  url   += '&lng='
+  url   += longitude.toString()
+  url   += "&username="
+  url   += username
+  console.log(url);
+  return url
+}
+
+function refreshView(){
+  //on affiche la position de l'iss ainsi que la trace qu'elle a formé avec les points précédents
+    couche_marqueur.clearLayers();
+    var marker = L.marker([latitude, longitude]);
+    if (last_latitude!=0 && Math.abs(last_longitude-longitude)<100) {
+        var polylinePoints = [
+                new L.LatLng(last_latitude, last_longitude),
+                new L.LatLng(latitude,longitude)]
+        var polyline = new L.Polyline(polylinePoints);
+        polyline.addTo(couche_lignes)
+    }
+    if (!(document.getElementById("cbox1").checked)){
+        mymap.setView([latitude, longitude], 6);
+    }
+    marker.addTo(couche_marqueur);
+    couche_marqueur.addTo(mymap);
+    couche_lignes.addTo(mymap);
+}
+
+function startTimer() {
+  // on veut rafraichir la carte toutes les secondes
+    setTimeout(function() {
+        getValue()
+        refreshView()
+        last_latitude  = latitude
+        last_longitude = longitude
+        var actual = Date.now() - start;
+        thisDelay  = myDelay - (actual - myDelay);
+        start      = Date.now();
+        startTimer();
+    }, thisDelay);
+}
+
+function create_url(zoom){
+  //on créé l'url en fonction des différents paramètres réglés par l'utilisateur
+  var url = 'https://maps.googleapis.com/maps/api/staticmap?maptype=satellite&center='
+  url    += latitude.toString()
+  url    += ','
+  url    += longitude.toString()
+  url    += '&zoom='
+  url    += zoom.toString()
+  url    += '&size=640x400&key='
+  url    += api_key
+  return url
+}
+
+function create_img(zoom){
+  // on créé une image dans le div tweet en faisant appel à la fonction create_url(zoom)
+  var photo = document.createElement("img");
+  var twt=document.getElementById('tweet_img')
+  while (twt.firstChild) {
+    twt.removeChild(twt.firstChild);
+    }
+  photo.setAttribute("src",create_url(zoom));
+  photo.setAttribute("height", "400");
+  photo.setAttribute("width", "640");
+
+  document.getElementById("tweet_img").appendChild(photo);
+}
+
+
+document.getElementById("clic").addEventListener("click", function(){
+  //on écoute le clic de l'utilisateur pour déclencher la prise de photo
+    var zoom=$('input[name="photo"]:checked').val();
+    create_img(zoom);
+    get_location();
+});
+
+// on initialise notre carte avec une première valeur de longitude /latitude
+getValue();
+setTimeout(function(){console.log('initialisation');},1000);
+
+//on fait une boucle infini qui actualise la position toutes les 2 secondes
+startTimer();
+
+</script>
+</html>
