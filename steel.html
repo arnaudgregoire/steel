@@ -67,6 +67,10 @@ var couche_marqueur = L.featureGroup();
 var couche_lignes   = L.featureGroup();
 var api_key         = 'AIzaSyDzDkv9g2y3YiudOwazvdkVEfC0LhYvS5Q';
 var username        = 'arnaudgregoire';
+var issIcon         = L.icon({
+                        iconUrl    : 'img/iss.png',
+                        iconSize   : [50, 50], // size of the icon
+                      });
 
 L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png',
     {
@@ -140,7 +144,7 @@ function refreshView(){
     document.getElementById("lat").innerHTML='latitude : '+latitude.toString()
     document.getElementById("long").innerHTML='longitude : '+longitude.toString()
 
-    var marker = L.marker([latitude, longitude]);
+    var marker = L.marker([latitude, longitude],{icon: issIcon});
     if (last_latitude!=0 && Math.abs(last_longitude-longitude)<100) {
         var polylinePoints = [
                 new L.LatLng(last_latitude, last_longitude),
