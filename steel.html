@@ -11,39 +11,45 @@
 <body>
 <header>
 	<h1>STEEL : Service de Tweet Efficace Et Localisé</h1>
-	
+
 </header>
 <div id="app">
 <div id='map-container'>
 	<div id="mapid"></div>
 </div>
 <div id ='settings_and_img'>
-<div id='settings'>
-<ul id='cam'>
-	<li>
-		<label>
-			<input type="checkbox" id="cbox1">
-			Caméra libre
-		</label>
-	</li>
-</ul>
-<form>
-  <h2>Appareil photo:</h2>
-  <ul>
-  <li><input type="radio" name="photo" value="7" checked> Smartphone</li>
-  <li><input type="radio" name="photo" value="10"> Reflex</li>
-  <li><input type="radio" name="photo" value="13"> Téléobjectif</li>
-</ul>
-</form>
-<button type="button" id='clic'><p>Prendre une photo</p></button>
+  <div id='settings'>
+  <h2>Réglages :</h2>
+  <div class='to_right'>
+  		<label>
+        <form>
+  			  <input type="checkbox" id="cbox1">
+  			   <p>Caméra libre</p>
+        </form>
+  		</label>
+  <form>
+    <input type="radio" name="photo" value="7" checked> <p>Smartphone</p>
+    <input type="radio" name="photo" value="10"><p> Reflex</p>
+    <input type="radio" name="photo" value="13"><p> Téléobjectif</p>
+  </form>
 </div>
-
+  <div class='centrer'>
+    <button type="button" id='clic'>
+        <p>Prendre une photo</p>
+        <i class="fa fa-camera" aria-hidden="true"></i>
+  </button>
+  </div>
+  <div id ='latlong'>
+    <h5 id='lat'>Latitude</h5>
+    <h5 id='long'>Longitude</h5>
+  </div>
+  </div>
   <div id='tweet'>
     <div id='tweet_img'>
     </div>
     <h2 id='tweet_titre'>Hello World !</h2>
   </div>
-</div>
+
 </div>
 </body>
 
@@ -131,6 +137,9 @@ function create_url_nom(){
 function refreshView(){
   //on affiche la position de l'iss ainsi que la trace qu'elle a formé avec les points précédents
     couche_marqueur.clearLayers();
+    document.getElementById("lat").innerHTML='latitude : '+latitude.toString()
+    document.getElementById("long").innerHTML='longitude : '+longitude.toString()
+
     var marker = L.marker([latitude, longitude]);
     if (last_latitude!=0 && Math.abs(last_longitude-longitude)<100) {
         var polylinePoints = [
@@ -154,9 +163,9 @@ function startTimer() {
         refreshView()
         last_latitude  = latitude
         last_longitude = longitude
-        var actual = Date.now() - start;
-        thisDelay  = myDelay - (actual - myDelay);
-        start      = Date.now();
+        var actual     = Date.now() - start;
+        thisDelay      = myDelay - (actual - myDelay);
+        start          = Date.now();
         startTimer();
     }, thisDelay);
 }
