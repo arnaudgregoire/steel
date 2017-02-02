@@ -2,6 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8">
+    <link rel="icon" href="img/iss.png" />
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.2/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.0.2/dist/leaflet.js"></script>
@@ -29,8 +30,8 @@
   		</label>
   <form>
     <input type="radio" name="photo" value="7" checked> <p>Smartphone</p>
-    <input type="radio" name="photo" value="10"><p> Reflex</p>
-    <input type="radio" name="photo" value="13"><p> Téléobjectif</p>
+    <input type="radio" name="photo" value="10">        <p>Reflex</p>
+    <input type="radio" name="photo" value="13">        <p>Téléobjectif</p>
   </form>
 </div>
   <div class='centrer'>
@@ -106,6 +107,7 @@ function xml2json(xml) {
       console.log(e.message);
   }
 }
+
 function getValue() {
   // on fait une requête ajax pour récupérer les coordonnées latitude longitude de l'iss
   $.ajax({
@@ -136,26 +138,61 @@ function get_location(){
                       set_location(pays,nom);
                       }
                   else{
-                  set_erreur();
+                      get_location_extended();
                 }
               }
       }})
 }
-
+function get_location_api(){
+  //on utilise Find nearby populated place / reverse geocoding pour trouver un lieu à proximité
+  $.ajax({
+      type: 'GET',
+      dataType: "jsonp",
+      url:create_url_api(),
+      crossDomain: true,
+      complete: function (data) {
+              console.log(data.readyState);
+              console.log(data.status);
+              if (data.readyState === 4 && data.status === 200) {
+                  var data_json = JSON.parse(data.responseJSON)
+                  console.log(data_json);
+                  console.log(data_json.geonames);
+                  try {
+                    var ocean = data_json.geonames.ocean.name
+                    set_ocean(ocean)
+                      }
+                  catch (e) {}
+                  try {
+                    console.log(data_json.geonames);
+                    var len  = data_json.geonames.geoname.length;
+                    var nom  = data_json.geonames.geoname[len-1].name;
+                    var pays = data_json.geonames.geoname[len-1].countryName;
+                    set_location(pays,nom);
+                      } catch (e) {}
+              }
+            }
+      })
+}
 function get_location_extended(){
   //on utilise Find nearby populated place / reverse geocoding pour trouver un lieu à proximité
   $.ajax({
       type: 'GET',
       dataType: "xml",
-      url: "http://api.geonames.org/extendedFindNearby?lat=-33.4538&lng=-115.7780&username=arnaudgregoire",
+      url: create_url_extended(),
       crossDomain: true,
       complete: function (data) {
-             if (data.readyState === 4 && data.status === 200) {
-								console.log('connexion réussi');
-								var data_xml  = data.responseXML;
-								var data_json = xml2json(data_xml);
-								console.log(data_json.geonames.ocean.name);
-                }
+              if (data.readyState === 4 && data.status === 200) {
+  								console.log('connexion réussi');
+  								var data_xml  = data.responseXML;
+  								var data_json = xml2json(data_xml);
+                  console.log(data_json);
+                  ocean         = data_json.geonames.ocean.name
+  								console.log(ocean);
+                  set_ocean(ocean);
+                  }
+              else{
+                  set_erreur();
+              }
               }
       })
 }
@@ -193,6 +230,16 @@ function create_url_extended(){
   url   += longitude.toString()
   url   += "&username="
   url   += username
+  console.log(url);
+  return url
+}
+
+function create_url_api(){
+  // on créé l'url qu'on envoie cette fois ci à notre API locale
+  var url= 'http://localhost:8080/?lat='
+  url   += latitude.toString()
+  url   += '&lng='
+  url   += longitude.toString()
   console.log(url);
   return url
 }
@@ -264,7 +311,9 @@ document.getElementById("clic").addEventListener("click", function(){
   //on écoute le clic de l'utilisateur pour déclencher la prise de photo
     var zoom=$('input[name="photo"]:checked').val();
     create_img(zoom);
-    get_location();
+    // pour la première partie, la commande get_location était utilisé
+    //get_location()
+    get_location_api();
 });
 
 // on initialise notre carte avec une première valeur de longitude /latitude
