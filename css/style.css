@@ -7,14 +7,14 @@ body{
   height: 100%;
   margin:0px;
   padding:0;
-background: #fff;
+background: #CDCDC0;
 }
 
 header{
   padding-top:1%;
 	width:100%;
 	height:10%;
-	background : #2c3e50;
+	background : #626d71;
 	color :#fff;
 	margin-bottom: 1%;
 	-webkit-box-shadow: 0 10px 6px -6px #777;
@@ -56,14 +56,14 @@ ul{
 	padding:2%;
 	margin-right:2%;
 	margin-left:1%;
-  border : 5px solid #27ae60;
+  border : 5px solid #b38867;
   background: #fff;
 border-radius: 2px;
 -webkit-border-radius: 2px;
 -moz-border-radius: 2px;
--webkit-box-shadow: 1px 2px 1px #d1d1d1;
--moz-box-shadow: 1px 2px 1px #d1d1d1;
-box-shadow: 3px 4px 2px #d1d1d1;
+-webkit-box-shadow: 1px 2px 1px #999;
+-moz-box-shadow: 1px 2px 1px #999;
+box-shadow: 3px 4px 2px #999;
 }
 h1{
     text-align: center;
@@ -74,7 +74,7 @@ h1{
 	 margin:0;
 }
 h2 {
-  color: #c0392b;
+  color: #b38667;
    font-family: 'Trocchi', serif;
     font-size: 1.3em;
     font-weight: bold;
@@ -95,25 +95,27 @@ img{
   height:auto;
 }
 #settings{
+  background: #fff;
   padding-left: 5%;
   padding-right: 5%;
-	border:2px solid #27ae60;
+	border:2px solid #b38867;
 border-radius: 2px;
 -webkit-border-radius: 2px;
 -moz-border-radius: 2px;
--webkit-box-shadow: 1px 2px 1px #d1d1d1;
--moz-box-shadow: 1px 2px 1px #d1d1d1;
-box-shadow: 3px 4px 2px #d1d1d1;
+-webkit-box-shadow: 1px 2px 1px #999;
+-moz-box-shadow: 1px 2px 1px #999;
+box-shadow: 3px 4px 2px #999;
 }
 #tweet{
-	border:2px solid #27ae60;
+    background: #fff;
+	border:2px solid #b38867;
 	margin-top : 3%;
 border-radius: 2px;
 -webkit-border-radius: 2px;
 -moz-border-radius: 2px;
--webkit-box-shadow: 1px 2px 1px #d1d1d1;
--moz-box-shadow: 1px 2px 1px #d1d1d1;
-box-shadow: 3px 4px 2px #d1d1d1;
+-webkit-box-shadow: 1px 2px 1px #999;
+-moz-box-shadow: 1px 2px 1px #999;
+box-shadow: 3px 4px 2px #999;
 }
 #latlong{
   display:flex;
@@ -125,17 +127,19 @@ h5{
   font-weight: normal;
 }
 #clic{
+
   border:none ;
   border-radius: 5px;
   padding:2% 4%;
   font-size: 100%;
   text-decoration: none;
   margin: 2%;
-  color: #fff;
+  color: #000;
   position: relative;
   display: inline-block;
-  background:#1abc9c;
- box-shadow: 0px 5px 0px 0px #16a085;
+    background:#ddbc95;
+     box-shadow: 0px 5px 0px 0px #b38867;
+
 }
 #clic:active {
   border:none;
@@ -144,8 +148,8 @@ h5{
   box-shadow: 0px 1px 0px 0px;
 }
 #clic:hover{
-  background:#e74c3c;
- box-shadow: 0px 5px 0px 0px #c0392b;
+  	background : #626d71;
+ box-shadow: 0px 5px 0px 0px #1e1f26;
  transition: all .5s;
 }
 .centrer{
