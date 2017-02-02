@@ -78,8 +78,34 @@ L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png',
     }
     ).addTo(mymap);
 
+function xml2json(xml) {
+  try {
+    var obj = {};
+    if (xml.children.length > 0) {
+      for (var i = 0; i < xml.children.length; i++) {
+        var item = xml.children.item(i);
+        var nodeName = item.nodeName;
 
+        if (typeof (obj[nodeName]) == "undefined") {
+          obj[nodeName] = xml2json(item);
+        } else {
+          if (typeof (obj[nodeName].push) == "undefined") {
+            var old = obj[nodeName];
 
+            obj[nodeName] = [];
+            obj[nodeName].push(old);
+          }
+          obj[nodeName].push(xml2json(item));
+        }
+      }
+    } else {
+      obj = xml.textContent;
+    }
+    return obj;
+  } catch (e) {
+      console.log(e.message);
+  }
+}
 function getValue() {
   // on fait une requête ajax pour récupérer les coordonnées latitude longitude de l'iss
   $.ajax({
@@ -116,9 +142,31 @@ function get_location(){
       }})
 }
 
+function get_location_extended(){
+  //on utilise Find nearby populated place / reverse geocoding pour trouver un lieu à proximité
+  $.ajax({
+      type: 'GET',
+      dataType: "xml",
+      url: "http://api.geonames.org/extendedFindNearby?lat=-33.4538&lng=-115.7780&username=arnaudgregoire",
+      crossDomain: true,
+      complete: function (data) {
+             if (data.readyState === 4 && data.status === 200) {
+								console.log('connexion réussi');
+								var data_xml  = data.responseXML;
+								var data_json = xml2json(data_xml);
+								console.log(data_json.geonames.ocean.name);
+                }
+              }
+      })
+}
 function set_location(pays,nom) {
   // on initialise le h1 en fonction de la location trouvé
     document.getElementById("tweet_titre").innerHTML = 'Hello '+ nom +' ' +pays +'!';
+}
+
+function set_ocean(ocean){
+   // on intialise le h1 avec le nom de l'ocean
+   document.getElementById("tweet_titre").innerHTML = 'Hello '+ocean;
 }
 
 function set_erreur() {
@@ -134,15 +182,25 @@ function create_url_nom(){
   url   += longitude.toString()
   url   += "&username="
   url   += username
-  console.log(url);
   return url
 }
 
+function create_url_extended(){
+  //on créé l'url avec la bonne latitude/longitude
+  var url= 'http://api.geonames.org/extendedFindNearby?lat='
+  url   += latitude.toString()
+  url   += '&lng='
+  url   += longitude.toString()
+  url   += "&username="
+  url   += username
+  console.log(url);
+  return url
+}
 function refreshView(){
   //on affiche la position de l'iss ainsi que la trace qu'elle a formé avec les points précédents
     couche_marqueur.clearLayers();
-    document.getElementById("lat").innerHTML='latitude : '+latitude.toString()
-    document.getElementById("long").innerHTML='longitude : '+longitude.toString()
+    document.getElementById("lat").innerHTML  = 'latitude : '+latitude.toString();
+    document.getElementById("long").innerHTML = 'longitude : '+longitude.toString();
 
     var marker = L.marker([latitude, longitude],{icon: issIcon});
     if (last_latitude!=0 && Math.abs(last_longitude-longitude)<100) {
