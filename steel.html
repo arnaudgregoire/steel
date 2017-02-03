@@ -80,6 +80,7 @@ L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png',
     ).addTo(mymap);
 
 function xml2json(xml) {
+	// fonction anciennement utilisé pour convertir directement du xml en json sans passser par un serveur
   try {
     var obj = {};
     if (xml.children.length > 0) {
@@ -145,6 +146,7 @@ function get_location(){
 }
 function get_location_api(){
   //on utilise Find nearby populated place / reverse geocoding pour trouver un lieu à proximité
+  // get_location_api se connecte à notre serveur local
   $.ajax({
       type: 'GET',
       dataType: "jsonp",
