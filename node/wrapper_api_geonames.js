@@ -20,7 +20,7 @@ app.get("/", function (req, res) {
     var params = querystring.parse(url.parse(req.url).query);
 	// on ouvre un serveur
     var options = {
-		// on se connecte au serveur api.geonames 
+		// on se connecte au serveur api.geonames
         hostname: "api.geonames.org",
         method : 'GET',
 		// on fait appel à une fonction intermédiaire pour créér l'url
@@ -57,5 +57,5 @@ function create_path_geonames(lat,lng){
     console.log("requête envoyé à l'url : " + path);
     return path
 }
-
+// on écoute les appels à notre serveur sur le port 8080
 app.listen(8080);
