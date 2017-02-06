@@ -26,6 +26,8 @@
         <form>
   			  <input type="checkbox" id="cbox1">
   			   <p>Caméra libre</p>
+          <input type="checkbox" id="cbox2">
+          <p>Mode Debug</p>
         </form>
   		</label>
   <form>
@@ -61,17 +63,99 @@ var latitude        = 0;
 var longitude       = 0;
 var last_latitude   = 0;
 var last_longitude  = 0;
+var facteur_vitesse = 40;
 var myDelay         = 1000;
 var thisDelay       = 1000;
 var start           = Date.now();
+var first_connexion = Date.now();
 var couche_marqueur = L.featureGroup();
 var couche_lignes   = L.featureGroup();
+var couche_debug    = L.featureGroup();
 var api_key         = 'AIzaSyDzDkv9g2y3YiudOwazvdkVEfC0LhYvS5Q';
 var username        = 'arnaudgregoire';
 var issIcon         = L.icon({
                         iconUrl    : 'img/iss.png',
                         iconSize   : [50, 50], // size of the icon
                       });
+
+var terre           = {
+                      r        : 6371,       // rayon approximatif de la terre en km
+                      };
+
+var iss             = {
+                      v           : 27600,   // vitesse de l'iss en km/h
+                      alt         : 400,     //L’altitude moyenne de l’ISS en km
+                      inclinaison : 51.64,
+                      polar       : 90    //l'inclinaison de l'iss en °
+                      };
+
+function radians(degrees)
+{
+  return degrees * (Math.PI/180);
+}
+
+function degrees(radians)
+{
+  return radians * (180/Math.PI);
+}
+
+function rotate(x,y,z,angle,axis){
+  var x_, y_, z_;
+  switch(axis){
+    case 'x':
+      x_ = x;
+      y_ = y*Math.cos(angle) - z*Math.sin(angle);
+      z_ = y*Math.sin(angle) + z*Math.cos(angle)
+      break;
+
+    case 'y':
+      x_ = z*Math.sin(angle) + x*Math.cos(angle);
+      y_ = y;
+      z_ = z*Math.cos(angle) - x*Math.sin(angle);
+      break;
+
+    case 'z':
+      x_ = x*Math.cos(angle) - y*Math.sin(angle);
+      y_ = x*Math.sin(angle) + y*Math.cos(angle);
+      z_ = z;
+      break;
+  }
+  return [x_,y_,z_];
+}
+
+function get_iss_coord(){
+      //calcul fictif de la position de l'iss
+      var last_connexion         = Date.now();
+      var delta_t                = last_connexion - first_connexion;
+      var d_parcouru             = (delta_t / 1000000)*iss.v*facteur_vitesse;
+      var perimetre_orbite       = 2 * Math.PI * (terre.r + iss.alt);
+      var azimuth                = (d_parcouru / perimetre_orbite)*360;
+      var azimuth                = azimuth % 360;
+
+      var x                      = terre.r * Math.cos(radians(azimuth)) * Math.sin(radians(iss.polar));
+      var y                      = terre.r * Math.sin(radians(azimuth)) * Math.sin(radians(iss.polar));
+      var z                      = Math.cos(radians(iss.polar));
+
+      var rotation_y             = rotate(x,y,z,radians(iss.inclinaison),'y');
+      x                          = rotation_y[0];
+      y                          = rotation_y[1];
+      z                          = rotation_y[2];
+
+      var rotation_terre         = facteur_vitesse * (delta_t / 1000) * 2 * Math.PI/86400;
+      rotation_terre             = rotation_terre % (2 * Math.PI);
+
+      rotation_z                 = rotate(x,y,z,rotation_terre,'z');
+      x                          = rotation_z[0];
+      y                          = rotation_z[1];
+      z                          = rotation_z[2];
+
+      var temp                   = z/terre.r;
+      latitude                   = degrees(Math.asin(temp)).toFixed(6);
+      longitude                  = degrees(Math.atan2(y,x)).toFixed(6);
+      console.log(azimuth);
+      console.log(latitude,longitude);
+}
+
 
 L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png',
     {
@@ -134,7 +218,7 @@ function get_location(){
       complete: function (data) {
              if (data.readyState === 4 && data.status === 200) {
                   if(data.responseJSON.geonames.length>0){
-                      var nom = data.responseJSON.geonames[0].name;
+                      var nom  = data.responseJSON.geonames[0].name;
                       var pays = data.responseJSON.geonames[0].countryName;
                       set_location(pays,nom);
                       }
@@ -213,6 +297,16 @@ function set_erreur() {
     document.getElementById("tweet_titre").innerHTML = "Aucune location n'a été trouvé à proximité :/"
 }
 
+
+document.getElementById("cbox2").addEventListener("click", function(){
+    couche_lignes.clearLayers();
+    couche_debug.clearLayers();
+    couche_marqueur.clearLayers();
+    latitude=0;
+    last_latitude=0;
+});
+
+
 function create_url_nom(){
   //on créé l'url avec la bonne latitude/longitude
   var url= 'http://api.geonames.org/findNearbyPlaceNameJSON?lat='
@@ -248,16 +342,21 @@ function create_url_api(){
 function refreshView(){
   //on affiche la position de l'iss ainsi que la trace qu'elle a formé avec les points précédents
     couche_marqueur.clearLayers();
-    document.getElementById("lat").innerHTML  = 'latitude : '+latitude.toString();
-    document.getElementById("long").innerHTML = 'longitude : '+longitude.toString();
+    document.getElementById("lat").innerHTML  = 'latitude : '  + latitude.toString();
+    document.getElementById("long").innerHTML = 'longitude : ' + longitude.toString();
 
     var marker = L.marker([latitude, longitude],{icon: issIcon});
-    if (last_latitude!=0 && Math.abs(last_longitude-longitude)<100) {
+    if (last_latitude!=0 && Math.abs(last_longitude-longitude)<300) {
         var polylinePoints = [
                 new L.LatLng(last_latitude, last_longitude),
                 new L.LatLng(latitude,longitude)]
         var polyline = new L.Polyline(polylinePoints);
-        polyline.addTo(couche_lignes)
+        if (document.getElementById("cbox2").checked){
+              polyline.addTo(couche_debug)
+        }
+        else {
+          polyline.addTo(couche_lignes)
+        }
     }
     if (!(document.getElementById("cbox1").checked)){
         mymap.setView([latitude, longitude], 6);
@@ -265,12 +364,19 @@ function refreshView(){
     marker.addTo(couche_marqueur);
     couche_marqueur.addTo(mymap);
     couche_lignes.addTo(mymap);
+    couche_debug.addTo(mymap);
 }
 
 function startTimer() {
   // on veut rafraichir la carte toutes les secondes
     setTimeout(function() {
-        getValue()
+      if (document.getElementById("cbox2").checked){
+        get_iss_coord();
+      }
+      else{
+        getValue();
+      }
+
         refreshView()
         last_latitude  = latitude
         last_longitude = longitude
@@ -280,6 +386,9 @@ function startTimer() {
         startTimer();
     }, thisDelay);
 }
+
+
+
 
 function create_url(zoom){
   //on créé l'url en fonction des différents paramètres réglés par l'utilisateur
