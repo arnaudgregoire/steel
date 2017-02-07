@@ -1,0 +1,27 @@
+{
+  "name": "wrapper_api_geonames",
+  "version": "1.0.0",
+  "description": "partie node serveur du projet steel",
+  "main": "wrapper_api_geonames.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arnaudgregoire/Steel.git"
+  },
+  "keywords": [
+    "iss",
+    "geodata"
+  ],
+  "author": "Arnaud Gregoire",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/arnaudgregoire/Steel/issues"
+  },
+  "homepage": "https://github.com/arnaudgregoire/Steel#readme",
+  "dependencies": {
+    "express": "^4.14.1",
+    "fast-xml-parser": "^2.2.1"
+  }
+}
