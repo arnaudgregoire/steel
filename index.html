@@ -91,218 +91,20 @@ var iss             = {
                       polar       : 90    //l'inclinaison de l'iss en °
                       };
 
-function radians(degrees)
-{
-  return degrees * (Math.PI/180);
-}
-
-function degrees(radians)
-{
-  return radians * (180/Math.PI);
-}
-
-function rotate(x,y,z,angle,axis){
-  var x_, y_, z_;
-  switch(axis){
-    case 'x':
-      x_ = x;
-      y_ = y*Math.cos(angle) - z*Math.sin(angle);
-      z_ = y*Math.sin(angle) + z*Math.cos(angle)
-      break;
-
-    case 'y':
-      x_ = z*Math.sin(angle) + x*Math.cos(angle);
-      y_ = y;
-      z_ = z*Math.cos(angle) - x*Math.sin(angle);
-      break;
-
-    case 'z':
-      x_ = x*Math.cos(angle) - y*Math.sin(angle);
-      y_ = x*Math.sin(angle) + y*Math.cos(angle);
-      z_ = z;
-      break;
-  }
-  return [x_,y_,z_];
-}
-
-function get_iss_coord(){
-      //calcul fictif de la position de l'iss
-      var last_connexion         = Date.now();
-      var delta_t                = last_connexion - first_connexion;
-      var d_parcouru             = (delta_t / 1000000)*iss.v*facteur_vitesse;
-      var perimetre_orbite       = 2 * Math.PI * (terre.r + iss.alt);
-      var azimuth                = (d_parcouru / perimetre_orbite)*360;
-      var azimuth                = azimuth % 360;
-
-      var x                      = terre.r * Math.cos(radians(azimuth)) * Math.sin(radians(iss.polar));
-      var y                      = terre.r * Math.sin(radians(azimuth)) * Math.sin(radians(iss.polar));
-      var z                      = Math.cos(radians(iss.polar));
-
-      var rotation_y             = rotate(x,y,z,radians(iss.inclinaison),'y');
-      x                          = rotation_y[0];
-      y                          = rotation_y[1];
-      z                          = rotation_y[2];
-
-      var rotation_terre         = facteur_vitesse * (delta_t / 1000) * 2 * Math.PI/86400;
-      rotation_terre             = rotation_terre % (2 * Math.PI);
-
-      rotation_z                 = rotate(x,y,z,rotation_terre,'z');
-      x                          = rotation_z[0];
-      y                          = rotation_z[1];
-      z                          = rotation_z[2];
-
-      var temp                   = z/terre.r;
-      latitude                   = degrees(Math.asin(temp)).toFixed(6);
-      longitude                  = degrees(Math.atan2(y,x)).toFixed(6);
-      console.log(azimuth);
-      console.log(latitude,longitude);
-}
-
-
 L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png',
     {
     attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
     }
     ).addTo(mymap);
 
-function xml2json(xml) {
-	// fonction anciennement utilisé pour convertir directement du xml en json sans passser par un serveur
-  try {
-    var obj = {};
-    if (xml.children.length > 0) {
-      for (var i = 0; i < xml.children.length; i++) {
-        var item = xml.children.item(i);
-        var nodeName = item.nodeName;
 
-        if (typeof (obj[nodeName]) == "undefined") {
-          obj[nodeName] = xml2json(item);
-        } else {
-          if (typeof (obj[nodeName].push) == "undefined") {
-            var old = obj[nodeName];
-
-            obj[nodeName] = [];
-            obj[nodeName].push(old);
-          }
-          obj[nodeName].push(xml2json(item));
-        }
-      }
-    } else {
-      obj = xml.textContent;
-    }
-    return obj;
-  } catch (e) {
-      console.log(e.message);
-  }
-}
-
-function getValue() {
-  // on fait une requête ajax pour récupérer les coordonnées latitude longitude de l'iss
-  $.ajax({
-      type: 'GET',
-      dataType: 'jsonp',
-      url: 'http://api.open-notify.org/iss-now.json',
-      crossDomain: true,
-      complete: function (data) {
-             if (data.readyState === 4 && data.status === 200) {
-                latitude  = data.responseJSON.iss_position.latitude;
-                longitude = data.responseJSON.iss_position.longitude;
-              }
-      }})
-}
-
-function get_location(){
-  //on utilise Find nearby populated place / reverse geocoding pour trouver un lieu à proximité
-  $.ajax({
-      type: 'GET',
-      dataType: 'jsonp',
-      url: create_url_nom(),
-      crossDomain: true,
-      complete: function (data) {
-             if (data.readyState === 4 && data.status === 200) {
-                  if(data.responseJSON.geonames.length>0){
-                      var nom  = data.responseJSON.geonames[0].name;
-                      var pays = data.responseJSON.geonames[0].countryName;
-                      set_location(pays,nom);
-                      }
-                  else{
-                      get_location_extended();
-                }
-              }
-      }})
-}
-function get_location_api(){
-  //on utilise Find nearby populated place / reverse geocoding pour trouver un lieu à proximité
-  // get_location_api se connecte à notre serveur local
-  $.ajax({
-      type: 'GET',
-      dataType: "jsonp",
-      url:create_url_api(),
-      crossDomain: true,
-      complete: function (data) {
-              console.log(data.readyState);
-              console.log(data.status);
-              if (data.readyState === 4 && data.status === 200) {
-                  var data_json = JSON.parse(data.responseJSON)
-                  console.log(data_json);
-                  console.log(data_json.geonames);
-                  try {
-                    var ocean = data_json.geonames.ocean.name
-                    set_ocean(ocean)
-                      }
-                  catch (e) {}
-                  try {
-                    console.log(data_json.geonames);
-                    var len  = data_json.geonames.geoname.length;
-                    var nom  = data_json.geonames.geoname[len-1].name;
-                    var pays = data_json.geonames.geoname[len-1].countryName;
-                    set_location(pays,nom);
-                      } catch (e) {}
-              }
-            }
-      })
-}
-function get_location_extended(){
-  //on utilise Find nearby populated place / reverse geocoding pour trouver un lieu à proximité
-  $.ajax({
-      type: 'GET',
-      dataType: "xml",
-      url: create_url_extended(),
-      crossDomain: true,
-      complete: function (data) {
-              if (data.readyState === 4 && data.status === 200) {
-  								console.log('connexion réussi');
-  								var data_xml  = data.responseXML;
-  								var data_json = xml2json(data_xml);
-                  console.log(data_json);
-                  ocean         = data_json.geonames.ocean.name
-  								console.log(ocean);
-                  set_ocean(ocean);
-                  }
-              else{
-                  set_erreur();
-              }
-              }
-      })
-}
-function set_location(pays,nom) {
-  // on initialise le h1 en fonction de la location trouvé
-    document.getElementById("tweet_titre").innerHTML = 'Hello '+ nom +' ' +pays +'!';
-}
-
-function set_ocean(ocean){
-   // on intialise le h1 avec le nom de l'ocean
-   document.getElementById("tweet_titre").innerHTML = 'Hello '+ocean;
-}
-
-function set_erreur() {
-  // on initialise le h1 en disant que aucune location n'a été trouvé à proximité :/
-    document.getElementById("tweet_titre").innerHTML = "Aucune location n'a été trouvé à proximité :/"
-}
-
-function facteur_v_maj(){
-  document.getElementById('facteur_v').innerHTML = 'Facteur vitesse (x'+facteur_vitesse+')'
-}
-
+</script>
+<script src = 'js/set_html.js'       ></script>
+<script src = 'js/math_functions.js' ></script>
+<script src = 'js/get_position.js'   ></script>
+<script src = 'js/get_location.js'   ></script>
+<script src = 'js/create_url.js'     ></script>
+<script>
 function clear_map(){
   couche_lignes.clearLayers();
   couche_debug.clearLayers();
@@ -315,38 +117,7 @@ document.getElementById("cbox2").addEventListener("click", function(){
 });
 
 
-function create_url_nom(){
-  //on créé l'url avec la bonne latitude/longitude
-  var url= 'http://api.geonames.org/findNearbyPlaceNameJSON?lat='
-  url   += latitude.toString()
-  url   += '&lng='
-  url   += longitude.toString()
-  url   += "&username="
-  url   += username
-  return url
-}
 
-function create_url_extended(){
-  //on créé l'url avec la bonne latitude/longitude
-  var url= 'http://api.geonames.org/extendedFindNearby?lat='
-  url   += latitude.toString()
-  url   += '&lng='
-  url   += longitude.toString()
-  url   += "&username="
-  url   += username
-  console.log(url);
-  return url
-}
-
-function create_url_api(){
-  // on créé l'url qu'on envoie cette fois ci à notre API locale
-  var url= 'http://localhost:8080/?lat='
-  url   += latitude.toString()
-  url   += '&lng='
-  url   += longitude.toString()
-  console.log(url);
-  return url
-}
 function refreshView(){
   //on affiche la position de l'iss ainsi que la trace qu'elle a formé avec les points précédents
     couche_marqueur.clearLayers();
@@ -399,36 +170,6 @@ function startTimer() {
         start           = Date.now();
         startTimer();
     }, thisDelay);
-}
-
-
-
-
-function create_url(zoom){
-  //on créé l'url en fonction des différents paramètres réglés par l'utilisateur
-  var url = 'https://maps.googleapis.com/maps/api/staticmap?maptype=satellite&center='
-  url    += latitude.toString()
-  url    += ','
-  url    += longitude.toString()
-  url    += '&zoom='
-  url    += zoom.toString()
-  url    += '&size=640x400&key='
-  url    += api_key
-  return url
-}
-
-function create_img(zoom){
-  // on créé une image dans le div tweet en faisant appel à la fonction create_url(zoom)
-  var photo = document.createElement("img");
-  var twt=document.getElementById('tweet_img')
-  while (twt.firstChild) {
-    twt.removeChild(twt.firstChild);
-    }
-  photo.setAttribute("src",create_url(zoom));
-  photo.setAttribute("height", "400");
-  photo.setAttribute("width", "640");
-
-  document.getElementById("tweet_img").appendChild(photo);
 }
 
 
