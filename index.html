@@ -28,6 +28,8 @@
   			   <p>Caméra libre</p>
           <input type="checkbox" id="cbox2">
           <p>Mode Debug</p>
+          <input type="range" id="v_fictif">
+          <p id='facteur_v'>Facteur vitesse</p>
         </form>
   		</label>
   <form>
@@ -43,8 +45,8 @@
   </button>
   </div>
   <div id ='latlong'>
-    <h5 id='lat'>Latitude</h5>
-    <h5 id='long'>Longitude</h5>
+    <h5 id='lat'>Lat :</h5>
+    <h5 id='long'>Long :</h5>
   </div>
   </div>
   <div id='tweet'>
@@ -297,13 +299,19 @@ function set_erreur() {
     document.getElementById("tweet_titre").innerHTML = "Aucune location n'a été trouvé à proximité :/"
 }
 
+function facteur_v_maj(){
+  document.getElementById('facteur_v').innerHTML = 'Facteur vitesse (x'+facteur_vitesse+')'
+}
 
+function clear_map(){
+  couche_lignes.clearLayers();
+  couche_debug.clearLayers();
+  couche_marqueur.clearLayers();
+  latitude      = 0;
+  last_latitude = 0;
+}
 document.getElementById("cbox2").addEventListener("click", function(){
-    couche_lignes.clearLayers();
-    couche_debug.clearLayers();
-    couche_marqueur.clearLayers();
-    latitude=0;
-    last_latitude=0;
+  clear_map();
 });
 
 
@@ -342,8 +350,8 @@ function create_url_api(){
 function refreshView(){
   //on affiche la position de l'iss ainsi que la trace qu'elle a formé avec les points précédents
     couche_marqueur.clearLayers();
-    document.getElementById("lat").innerHTML  = 'latitude : '  + latitude.toString();
-    document.getElementById("long").innerHTML = 'longitude : ' + longitude.toString();
+    document.getElementById("lat").innerHTML  = 'Lat : '  + latitude.toString();
+    document.getElementById("long").innerHTML = 'Long : ' + longitude.toString();
 
     var marker = L.marker([latitude, longitude],{icon: issIcon});
     if (last_latitude!=0 && Math.abs(last_longitude-longitude)<300) {
@@ -376,13 +384,19 @@ function startTimer() {
       else{
         getValue();
       }
-
         refreshView()
-        last_latitude  = latitude
-        last_longitude = longitude
-        var actual     = Date.now() - start;
-        thisDelay      = myDelay - (actual - myDelay);
-        start          = Date.now();
+        last_latitude   = latitude
+        last_longitude  = longitude
+        if(facteur_vitesse != document.getElementById("v_fictif").value){
+            facteur_vitesse = document.getElementById("v_fictif").value
+            facteur_v_maj()
+            if(document.getElementById("cbox2").checked){
+                clear_map()
+            }
+        }
+        var actual      = Date.now() - start;
+        thisDelay       = myDelay - (actual - myDelay);
+        start           = Date.now();
         startTimer();
     }, thisDelay);
 }
@@ -429,6 +443,9 @@ document.getElementById("clic").addEventListener("click", function(){
 
 // on initialise notre carte avec une première valeur de longitude /latitude
 getValue();
+document.getElementById("v_fictif").value      = facteur_vitesse
+document.getElementById('facteur_v').innerHTML = 'Facteur vitesse (x'+facteur_vitesse+')'
+facteur_v_maj()
 setTimeout(function(){console.log('initialisation');},1000);
 
 //on fait une boucle infini qui actualise la position toutes les 2 secondes
