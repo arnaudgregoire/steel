@@ -7,6 +7,7 @@ var iss           = {
   inclinaison : 51.64,
   polar       : 90    //l'inclinaison de l'iss en °
   };
+var alert_debug  = false
 
 function getValue() {
   // on fait une requête ajax pour récupérer les coordonnées latitude longitude de l'iss
@@ -36,5 +37,12 @@ function get_iss_coord(first_connexion,last_connexion,facteur_vitesse){
                 longitude = data_json.longitude;
                 console.log(latitude,longitude);
               }
-      }})
+      },
+      error: function(){
+        if (alert_debug == false){
+          alert('Veuillez ouvrir le serveur node pour utiliser le mode debug')
+          alert_debug = true
+        }
+      }
+      })
 }

@@ -1,3 +1,5 @@
+var alert_node = false
+
 function xml2json(xml) {
 	// fonction anciennement utilisé pour convertir directement du xml en json sans passser par un serveur
   try {
@@ -77,6 +79,12 @@ function get_location_api(){
                     var pays = data_json.geonames.geoname[len-1].countryName;
                     set_location(pays,nom);
                       } catch (e) {}
+              }
+            },
+            error: function(){
+              if (alert_node == false){
+                alert('Veuillez ouvrir le serveur node pour avoir la localisation de la photo')
+                alert_node = true
               }
             }
       })
