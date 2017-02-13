@@ -18,11 +18,11 @@ Se placer dans le sous-dossier node comme par exemple:
 ```shell
 $ cd 'C:\Users\Arnaud\Desktop\Travail\Steel\node'
 ```
-Télécharger les modules fast-xml-parser et express qui sont utilisés coté serveur
+Si vous n'avez pas dans le dossier node de sous-dossier node_modules, Télécharger les modules fast-xml-parser et express qui sont utilisés coté serveur
 ```shell
 $ npm install
 ```
 Lancer le serveur node :
 ```shell
-$ node wrapper_api_geonames.js
+$ node wrapper_apis.js
 ```

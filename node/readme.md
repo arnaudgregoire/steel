@@ -12,11 +12,18 @@ réponse du serveur reçu
 Conversion XML to JSON terminé
 { geonames: { ocean: { name: 'Indian Ocean' } } }
 ```
+Lorsque le client appuie sur le bouton mode Debug, la console affiche normalement toutes les secondes un message du type :
+
+```shell
+caclul de la position simulé de l'iss
+{ latitude: '-30.542521', longitude: '-56.623001' }
+
+```
 
 ###Lancement du serveur node sur le port 8080
 
 Lancer le serveur node :
 
 ```shell
-$ node wrapper_api_geonames.js
+$ node wrapper_apis.js
 ```

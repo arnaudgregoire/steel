@@ -80,16 +80,6 @@ var issIcon         = L.icon({
                         iconSize   : [50, 50], // size of the icon
                       });
 
-var terre           = {
-                      r        : 6371,       // rayon approximatif de la terre en km
-                      };
-
-var iss             = {
-                      v           : 27600,   // vitesse de l'iss en km/h
-                      alt         : 400,     //L’altitude moyenne de l’ISS en km
-                      inclinaison : 51.64,
-                      polar       : 90    //l'inclinaison de l'iss en °
-                      };
 
 L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png',
     {
@@ -99,11 +89,11 @@ L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png',
 
 
 </script>
+<script src = 'js/create_url.js'     ></script>
 <script src = 'js/set_html.js'       ></script>
 <script src = 'js/math_functions.js' ></script>
 <script src = 'js/get_position.js'   ></script>
 <script src = 'js/get_location.js'   ></script>
-<script src = 'js/create_url.js'     ></script>
 <script>
 function clear_map(){
   couche_lignes.clearLayers();
@@ -112,11 +102,6 @@ function clear_map(){
   latitude      = 0;
   last_latitude = 0;
 }
-document.getElementById("cbox2").addEventListener("click", function(){
-  clear_map();
-});
-
-
 
 function refreshView(){
   //on affiche la position de l'iss ainsi que la trace qu'elle a formé avec les points précédents
@@ -150,7 +135,7 @@ function startTimer() {
   // on veut rafraichir la carte toutes les secondes
     setTimeout(function() {
       if (document.getElementById("cbox2").checked){
-        get_iss_coord();
+        get_iss_coord(first_connexion,Date.now(),facteur_vitesse);
       }
       else{
         getValue();
@@ -173,14 +158,6 @@ function startTimer() {
 }
 
 
-document.getElementById("clic").addEventListener("click", function(){
-  //on écoute le clic de l'utilisateur pour déclencher la prise de photo
-    var zoom=$('input[name="photo"]:checked').val();
-    create_img(zoom);
-    // pour la première partie, la commande get_location était utilisé
-    //get_location()
-    get_location_api();
-});
 
 // on initialise notre carte avec une première valeur de longitude /latitude
 getValue();

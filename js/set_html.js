@@ -18,6 +18,19 @@ function facteur_v_maj(){
   document.getElementById('facteur_v').innerHTML = 'Facteur vitesse (x'+facteur_vitesse+')'
 }
 
+document.getElementById("cbox2").addEventListener("click", function(){
+  clear_map();
+});
+
+document.getElementById("clic").addEventListener("click", function(){
+  //on écoute le clic de l'utilisateur pour déclencher la prise de photo
+    var zoom=$('input[name="photo"]:checked').val();
+    create_img(zoom);
+    // pour la première partie, la commande get_location était utilisé
+    //get_location()
+    get_location_api();
+});
+
 
 function create_img(zoom){
   // on créé une image dans le div tweet en faisant appel à la fonction create_url(zoom)

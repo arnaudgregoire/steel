@@ -42,3 +42,14 @@ function create_url(zoom){
   url    += api_key
   return url
 }
+
+function create_url_iss_coord(first_connexion,last_connexion,facteur_vitesse) {
+    var url = 'http://localhost:8080/?first_connexion='
+    url    += first_connexion.toString()
+    url    += '&last_connexion='
+    url    += last_connexion.toString()
+    url    += '&facteur_vitesse='
+    url    += facteur_vitesse.toString()
+    console.log(url);
+    return url
+}
